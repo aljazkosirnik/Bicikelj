@@ -1,0 +1,25 @@
+.body {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.list {
+  width: 40%;
+}
+
+.list-item {
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.list-item:nth-of-type(even) {
+  background: rgb(207, 207, 207);
+}
+
+.list-item h1 {
+  font-size: 1rem;
+}
+
+.map {
+  width: 60%;
+}
