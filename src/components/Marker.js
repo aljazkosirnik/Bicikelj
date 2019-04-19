@@ -14,6 +14,7 @@ const useGoogleMap = apiKey => {
 
 const useMap = ({ googleMap, mapContainerRef, mapInfo, data, loading }) => {
   const [map, setMap] = useState(null);
+  const [infoToggle, setInfoToggle] = useState(false);
 
   // wait for data
   function wait() {
@@ -38,16 +39,20 @@ const useMap = ({ googleMap, mapContainerRef, mapInfo, data, loading }) => {
       );
       infoWindows.push(
         new googleMap.maps.InfoWindow({
-          content: `<div id="content">
+          content: `<div className="infoWindow">
                       <h5>${marker._attributes.address}</h5>
                     </div>`
         })
       );
     });
 
+    // loop trough markers array, if mouseover display info windows on that marker
     for (let i = 0; i < markers.length; i++) {
-      markers[i].addListener("click", () => {
+      markers[i].addListener("mouseover", () => {
         infoWindows[i].open(map, markers[i]);
+      });
+      markers[i].addListener("mouseout", () => {
+        infoWindows[i].close(map, markers[i]);
       });
     }
 

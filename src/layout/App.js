@@ -36,7 +36,6 @@ const App = () => {
         )
       );
     setLoading(false);
-    console.log();
   }
 
   // Call useEffect only once, thats why there is an empty array (no dependencies)
