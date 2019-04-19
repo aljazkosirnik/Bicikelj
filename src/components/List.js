@@ -1,8 +1,7 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 function List(data) {
-  console.log(data);
-  if (data.loading == true) {
+  if (data.loading === true) {
     return (
       <div className="list">
         <h1>Loading...</h1>

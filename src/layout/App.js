@@ -1,12 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import List from "../components/List";
 import MapComponent from "../components/Map";
+import { useGoogleMap, useMap } from "../components/Marker";
 import Header from "./Header";
 import Footer from "./Footer";
 import "../layout/style.css";
 const convert = require("xml-js");
 
-function App() {
+const API_KEY = "AIzaSyDjfCiAbexFHp5OujzznVrIYIwyJUPuNBo";
+
+const mapInfo = {
+  zoom: 13.4,
+  center: { lat: 46.056946, lng: 14.505751 }
+};
+
+const App = () => {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -24,27 +32,32 @@ function App() {
       )
       .catch(error =>
         console.log(
-          "Can’t access " + url + " response. Blocked by browser? " + error
+          "Can’t access " + url + " response. Blocked by browser? or " + error
         )
       );
     setLoading(false);
+    console.log();
   }
 
-  // Call useEffect only once, thats why there is an empty array on line 36 (no dependencies)
+  // Call useEffect only once, thats why there is an empty array (no dependencies)
   useEffect(() => {
     fetchData();
   }, []);
+
+  const googleMap = useGoogleMap(API_KEY);
+  const mapContainerRef = useRef(null);
+  useMap({ googleMap, mapContainerRef, mapInfo, data, loading });
 
   return (
     <div>
       <Header />
       <div className="body">
         <List data={data} loading={loading} />
-        <MapComponent />
+        <div className="map" ref={mapContainerRef} />
       </div>
       <Footer />
     </div>
   );
-}
+};
 
 export default App;

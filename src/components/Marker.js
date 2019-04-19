@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
 import GoogleMapsApiLoader from "google-maps-api-loader";
-const convert = require("xml-js");
 
 // Exported to Map.js
 const useGoogleMap = apiKey => {
@@ -14,33 +12,54 @@ const useGoogleMap = apiKey => {
   return googleMap;
 };
 
-const useMap = ({ googleMap, mapContainerRef, mapInfo }) => {
+const useMap = ({ googleMap, mapContainerRef, mapInfo, data, loading }) => {
   const [map, setMap] = useState(null);
-  useEffect(() => {
+
+  // wait for data
+  function wait() {
     if (!googleMap || !mapContainerRef.current) {
       return;
     }
-    // Map init
+    // Init map
     const map = new googleMap.maps.Map(mapContainerRef.current, mapInfo);
 
-    // marker
-    const marker = new googleMap.maps.Marker({
-      position: mapInfo.center,
-      map: map
+    // markers
+    const markers = [];
+    const infoWindows = [];
+    data.carto.markers.marker.map(marker => {
+      markers.push(
+        new googleMap.maps.Marker({
+          position: {
+            lat: parseFloat(marker._attributes.lat),
+            lng: parseFloat(marker._attributes.lng)
+          },
+          map: map
+        })
+      );
+      infoWindows.push(
+        new googleMap.maps.InfoWindow({
+          content: `<div id="content">
+                      <h5>${marker._attributes.address}</h5>
+                    </div>`
+        })
+      );
     });
-    const InfoWindow = new googleMap.maps.InfoWindow({
-      content: `<div id="content">
-                    <button id="onBtn" class="btn btn-sm">
-                      按鈕
-                    </button>
-                  </div>`
-    });
-    marker.addListener("click", () => {
-      InfoWindow.open(map, marker);
-    });
+
+    for (let i = 0; i < markers.length; i++) {
+      markers[i].addListener("click", () => {
+        infoWindows[i].open(map, markers[i]);
+      });
+    }
+
     setMap(map);
-  }, [googleMap, mapContainerRef]);
-  return map;
+
+    return map;
+  }
+
+  // this will run wait() when loading changes value, and it will change to false which means data was sent
+  useEffect(() => {
+    wait();
+  }, [loading]);
 };
 
 export { useGoogleMap, useMap };
