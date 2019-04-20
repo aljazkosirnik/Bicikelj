@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import List from "../components/List";
+import List from "../components/Table";
 import { useMap } from "../components/Marker";
 import { useGoogleMap, mapInfo } from "../components/GoogleMap";
 import axios from "axios";
 import convert from "xml-js";
-import { Grid, Segment } from "semantic-ui-react";
+import { Grid, Segment, Dimmer, Loader, Image } from "semantic-ui-react";
 
 const App = () => {
 	const [data, setData] = useState(null);
@@ -58,25 +58,33 @@ const App = () => {
 	}, []);
 
 	// Map information
-	const googleMap = useGoogleMap("AIzaSyDjfCiAbexFHp5OujzznVrIYIwyJUPuNBo");
+	const googleMap = useGoogleMap("");
 	const mapContainerRef = useRef(null);
 	// Init map
 	useMap({ googleMap, mapContainerRef, mapInfo, data, stations, loading });
 
-	return (
-		<Grid columns="equal">
-			<Grid.Column>
-				<Segment>
-					<div className="map" ref={mapContainerRef} />
-				</Segment>
-			</Grid.Column>
-			<Grid.Column>
-				<Segment>
-					<List data={data} loading={loading} stations={stations} />
-				</Segment>
-			</Grid.Column>
-		</Grid>
-	);
+	if (loading == true) {
+		return (
+			<Dimmer active inverted>
+				<Loader inverted content="Nalagam" size="huge" className="loader" />
+			</Dimmer>
+		);
+	} else {
+		return (
+			<Grid stackable columns="equal">
+				<Grid.Column width={10}>
+					<Segment>
+						<div className="map" ref={mapContainerRef} />
+					</Segment>
+				</Grid.Column>
+				<Grid.Column>
+					<Segment>
+						<List data={data} loading={loading} stations={stations} />
+					</Segment>
+				</Grid.Column>
+			</Grid>
+		);
+	}
 };
 
 export default App;

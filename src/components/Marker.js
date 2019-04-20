@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Header } from "semantic-ui-react";
 
 const useMap = ({
 	// All this data is from App.js
@@ -35,16 +36,14 @@ const useMap = ({
 			infoWindows.push(
 				new googleMap.maps.InfoWindow({
 					content: `<div className="infoWindow">
-                      <h5>${marker._attributes.fullAddress}</h5>
-                      <h5>Število kole: ${
-												stations[marker._attributes.number - 1].station
-													.available._text
-											}</h5>
-                      <h5>Število prostih mest: ${
-												stations[marker._attributes.number - 1].station.free
-													._text
-											}</h5>
-                    </div>`
+							<h3>${marker._attributes.fullAddress}</h3>
+							<h5>Število koles: ${
+								stations[marker._attributes.number - 1].station.available._text
+							}</h5>
+							<h5>Število prostih mest: ${
+								stations[marker._attributes.number - 1].station.free._text
+							}</h5>
+          </div>`
 				})
 			);
 		});
