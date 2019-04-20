@@ -1,62 +1,82 @@
 import React, { useState, useEffect, useRef } from "react";
 import List from "../components/List";
-import MapComponent from "../components/Map";
-import { useGoogleMap, useMap } from "../components/Marker";
-import Header from "./Header";
-import Footer from "./Footer";
-import "../layout/style.css";
-const convert = require("xml-js");
-
-const API_KEY = "AIzaSyDjfCiAbexFHp5OujzznVrIYIwyJUPuNBo";
-
-const mapInfo = {
-  zoom: 13.4,
-  center: { lat: 46.056946, lng: 14.505751 }
-};
+import { useMap } from "../components/Marker";
+import { useGoogleMap, mapInfo } from "../components/GoogleMap";
+import axios from "axios";
+import convert from "xml-js";
+import { Grid, Segment } from "semantic-ui-react";
 
 const App = () => {
-  const [data, setData] = useState({});
-  const [loading, setLoading] = useState(true);
+	const [data, setData] = useState(null);
+	const [stations, setStations] = useState([]);
+	const [loading, setLoading] = useState(true);
 
-  const proxyurl = "https://whispering-cove-30903.herokuapp.com/";
-  const url = "http://www.bicikelj.si/service/carto";
+	// links for fetching data
+	const proxyurl = "https://whispering-cove-30903.herokuapp.com/";
+	const url = "http://www.bicikelj.si/service/carto";
+	const stationUrl = "http://www.bicikelj.si/service/stationdetails/ljubljana/";
 
-  // Wait for the data, then change loading to false for components to start displaying data
-  async function fetchData() {
-    await fetch(proxyurl + url)
-      .then(response => response.text())
-      .then(contents =>
-        setData(
-          JSON.parse(convert.xml2json(contents, { compact: true, spaces: 1 }))
-        )
-      )
-      .catch(error =>
-        console.log(
-          "Can’t access " + url + " response. Blocked by browser? or " + error
-        )
-      );
-    setLoading(false);
-  }
+	// Get station location and name
+	async function fetchData() {
+		await fetch(proxyurl + url)
+			.then(response => response.text())
+			.then(contents =>
+				setData(
+					// Since Bicikelj uses XML, convert it to json
+					JSON.parse(convert.xml2json(contents, { compact: true, spaces: 1 }))
+				)
+			)
+			.catch(error =>
+				console.log(
+					"Can’t access " + url + " response. Blocked by browser? or " + error
+				)
+			);
+	}
 
-  // Call useEffect only once, thats why there is an empty array (no dependencies)
-  useEffect(() => {
-    fetchData();
-  }, []);
+	// Get station information about how many bikes and locks are free
+	const fetchStationInfo = async () => {
+		let i;
+		let stationArray = [];
+		// make request for all 59 stations
+		for (i = 1; i <= 59; i++) {
+			const result = await axios(proxyurl + stationUrl + i);
+			let finalResult = JSON.parse(
+				convert.xml2json(result.data, { compact: true, spaces: 1 })
+			);
+			stationArray.push(finalResult);
+		}
+		// Set the stationArray with information to state
+		setStations(stationArray);
+		// Set the loading state to false, to pass it for loading spinner
+		setLoading(false);
+	};
 
-  const googleMap = useGoogleMap(API_KEY);
-  const mapContainerRef = useRef(null);
-  useMap({ googleMap, mapContainerRef, mapInfo, data, loading });
+	// Call useEffect, only once
+	useEffect(() => {
+		fetchData();
+		fetchStationInfo();
+	}, []);
 
-  return (
-    <div>
-      <Header />
-      <div className="body">
-        <List data={data} loading={loading} />
-        <div className="map" ref={mapContainerRef} />
-      </div>
-      <Footer />
-    </div>
-  );
+	// Map information
+	const googleMap = useGoogleMap("AIzaSyDjfCiAbexFHp5OujzznVrIYIwyJUPuNBo");
+	const mapContainerRef = useRef(null);
+	// Init map
+	useMap({ googleMap, mapContainerRef, mapInfo, data, stations, loading });
+
+	return (
+		<Grid columns="equal">
+			<Grid.Column>
+				<Segment>
+					<div className="map" ref={mapContainerRef} />
+				</Segment>
+			</Grid.Column>
+			<Grid.Column>
+				<Segment>
+					<List data={data} loading={loading} stations={stations} />
+				</Segment>
+			</Grid.Column>
+		</Grid>
+	);
 };
 
 export default App;
